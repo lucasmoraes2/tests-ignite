@@ -2,16 +2,18 @@ import { InMemoryStatementsRepository } from "../../repositories/in-memory/InMem
 import { InMemoryUsersRepository } from "../../../users/repositories/in-memory/InMemoryUsersRepository";
 
 import { CreateUserUseCase } from "../../../users/useCases/createUser/CreateUserUseCase";
-import { CreateStatementUseCase } from "./CreateStatementUseCase";
+import { CreateStatementUseCase } from "../createStatement/CreateStatementUseCase";
 
 import { ICreateUserDTO } from "../../../users/useCases/createUser/ICreateUserDTO";
-import { ICreateStatementDTO } from "./ICreateStatementDTO";
+import { ICreateStatementDTO } from "../createStatement/ICreateStatementDTO";
 
 import { Statement } from "../../entities/Statement";
+import { GetStatementOperationUseCase } from "./GetStatementOperationUseCase";
 
 let inMemoryStatementsRepository: InMemoryStatementsRepository;
 let inMemoryUsersRepository: InMemoryUsersRepository;
 let createStatementUseCase: CreateStatementUseCase;
+let getStatementOperationUseCase: GetStatementOperationUseCase;
 let createUserUseCase: CreateUserUseCase;
 
 enum OperationType {
@@ -19,16 +21,17 @@ enum OperationType {
   WITHDRAW = 'withdraw',
 }
 
-describe("Create Statement", () => {
+describe("Get Statement Operation", () => {
 
   beforeEach(() => {
     inMemoryStatementsRepository = new InMemoryStatementsRepository();
     inMemoryUsersRepository = new InMemoryUsersRepository();
     createStatementUseCase = new CreateStatementUseCase(inMemoryUsersRepository, inMemoryStatementsRepository);
+    getStatementOperationUseCase = new GetStatementOperationUseCase(inMemoryUsersRepository, inMemoryStatementsRepository);
     createUserUseCase = new CreateUserUseCase(inMemoryUsersRepository);
   });
 
-  it("should be able to create a deposit", async () => {
+  it("should be able to get a statement operation", async () => {
     const user: ICreateUserDTO = {
       email: "eje@lej.pg",
       name: "Henrietta Bass",
@@ -44,37 +47,12 @@ describe("Create Statement", () => {
       user_id: newUser.id as string
     };
 
-    const result = await createStatementUseCase.execute(statement);
+    const newStatement = await createStatementUseCase.execute(statement);
 
-    expect(result).toBeInstanceOf(Statement);
-  });
-
-  it("should be able to make a withdraw", async () => {
-    const user: ICreateUserDTO = {
-      email: "eje@lej.pg",
-      name: "Henrietta Bass",
-      password: "186577"
-    };
-
-    const newUser = await createUserUseCase.execute(user);
-
-    const statementDeposit: ICreateStatementDTO = {
-      amount: 30000,
-      description: "Statement Test",
-      type: OperationType.DEPOSIT,
+    const result = await getStatementOperationUseCase.execute({
+      statement_id: newStatement.id as string,
       user_id: newUser.id as string
-    };
-
-    await createStatementUseCase.execute(statementDeposit);
-
-    const statementWithdraw: ICreateStatementDTO = {
-      amount: 20000,
-      description: "Statement Test",
-      type: OperationType.WITHDRAW,
-      user_id: newUser.id as string
-    };
-
-    const result = await createStatementUseCase.execute(statementWithdraw);
+    });
 
     expect(result).toBeInstanceOf(Statement);
   });
