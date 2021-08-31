@@ -6,7 +6,7 @@ import databaseConnection from '../../../../database';
 
 let connection: Connection;
 
-describe("Create User Controller", () => {
+describe("Create Statement Controller", () => {
   beforeAll(async () => {
     connection = await databaseConnection();
     await connection.runMigrations();
@@ -17,14 +17,33 @@ describe("Create User Controller", () => {
     await connection.close();
   });
 
-  it("should be able to create a new user", async () => {
-    const response = await request(app)
+  it("should be able to create a statement", async () => {
+    await request(app)
       .post("/api/v1/users")
       .send({
         name: "Randy Gonzalez",
         email: "RandyGonzalez@email.com",
         password: "859362"
       });
+
+    const authentication = await request(app)
+      .post("/api/v1/sessions")
+      .send({
+        email: "RandyGonzalez@email.com",
+        password: "859362"
+      });
+
+    const token = authentication.body.token;
+
+    const response = await request(app)
+      .post("/api/v1/statements/deposit")
+      .send({
+        amount: 1000.00,
+        description: "Deposit test"
+      })
+      .set('Authorization', 'Bearer ' + token);
+
+      console.log(response);
 
     expect(response.status).toBe(201);
   });

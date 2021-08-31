@@ -6,7 +6,7 @@ import databaseConnection from '../../../../database';
 
 let connection: Connection;
 
-describe("Create User Controller", () => {
+describe("Show User Profile Controller", () => {
   beforeAll(async () => {
     connection = await databaseConnection();
     await connection.runMigrations();
@@ -17,8 +17,8 @@ describe("Create User Controller", () => {
     await connection.close();
   });
 
-  it("should be able to create a new user", async () => {
-    const response = await request(app)
+  it("should be able to show an user", async () => {
+    await request(app)
       .post("/api/v1/users")
       .send({
         name: "Randy Gonzalez",
@@ -26,6 +26,19 @@ describe("Create User Controller", () => {
         password: "859362"
       });
 
-    expect(response.status).toBe(201);
+    const authentication = await request(app)
+      .post("/api/v1/sessions")
+      .send({
+        email: "RandyGonzalez@email.com",
+        password: "859362"
+      });
+
+    const token = authentication.body.token;
+
+    const response = await request(app)
+      .get("/api/v1/profile")
+      .set('Authorization', 'Bearer ' + token);
+
+    expect(response.status).toBe(200);
   });
 });
