@@ -13,4 +13,8 @@ router.use('/profile', userProfileRouter);
 
 router.use('/statements', statementRouter);
 
+router.get('/abacaxi', (request, response) => {
+  response.send({ msg: "abacaxi" })
+})
+
 export { router };
