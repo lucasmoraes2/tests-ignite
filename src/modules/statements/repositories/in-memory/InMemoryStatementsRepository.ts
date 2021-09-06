@@ -2,6 +2,7 @@ import { Statement } from "../../entities/Statement";
 import { ICreateStatementDTO } from "../../useCases/createStatement/ICreateStatementDTO";
 import { IGetBalanceDTO } from "../../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../../useCases/getStatementOperation/IGetStatementOperationDTO";
+import { ITransferOperationDTO } from "../../useCases/transferOperation/ITransferOperationDTO";
 import { IStatementsRepository } from "../IStatementsRepository";
 
 export class InMemoryStatementsRepository implements IStatementsRepository {
@@ -48,4 +49,6 @@ export class InMemoryStatementsRepository implements IStatementsRepository {
 
     return { balance }
   }
+
+  transfer: (data: ITransferOperationDTO) => Promise<Statement>;
 }

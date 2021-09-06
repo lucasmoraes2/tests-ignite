@@ -25,22 +25,28 @@ export class TransferOperationUseCase {
     const sender_user = await this.usersRepository.findById(sender_user_id);
 
     if(!sender_user) {
-      throw new TransferOperationError.ReceiverUserNotFound();
-    }
-
-    const receiver_user = await this.usersRepository.findById(sender_user_id);
-
-    if(!receiver_user) {
       throw new TransferOperationError.SenderUserNotFound();
     }
 
-    // const statementOperation = await this.statementsRepository
-    //   .findStatementOperation({ user_id, statement_id });
+    const receiver_user = await this.usersRepository.findById(receiver_user_id);
 
-    //   if(!statementOperation) {
-    //     throw new TransferOperationError.StatementNotFound();
-    //   }
+    if(!receiver_user) {
+      throw new TransferOperationError.ReceiverUserNotFound();
+    }
 
-    //   return statementOperation;
+    const { balance } = await this.statementsRepository.getUserBalance({ user_id: sender_user_id });
+
+    if (balance < amount) {
+      throw new TransferOperationError.InsufficientFunds()
+    }
+
+    const statementOperation = await this.statementsRepository.transfer({
+      sender_user_id,
+      receiver_user_id,
+      amount,
+      description
+    });
+
+    return statementOperation;
   }
 }

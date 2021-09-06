@@ -6,7 +6,7 @@ import { TransferOperationUseCase } from './TransferOperationUseCase';
 export class TransferOperationController {
   async execute(request: Request, response: Response) {
     const { id: sender_user_id } = request.user;
-    const { receiver_user_id } = request.params;
+    const { user_id: receiver_user_id } = request.params;
     const { amount, description } = request.body;
 
     const transferOperation = container.resolve(TransferOperationUseCase);

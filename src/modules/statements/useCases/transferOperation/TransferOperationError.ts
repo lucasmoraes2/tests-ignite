@@ -13,9 +13,9 @@ export namespace TransferOperationError {
     }
   }
 
-  export class StatementNotFound extends AppError {
+  export class InsufficientFunds extends AppError {
     constructor() {
-      super('Statement not found', 404);
+      super('Insufficient funds', 400);
     }
   }
 }

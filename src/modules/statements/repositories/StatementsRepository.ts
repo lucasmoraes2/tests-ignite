@@ -1,9 +1,10 @@
 import { getRepository, Repository } from "typeorm";
 
-import { Statement } from "../entities/Statement";
+import { OperationType, Statement } from "../entities/Statement";
 import { ICreateStatementDTO } from "../useCases/createStatement/ICreateStatementDTO";
 import { IGetBalanceDTO } from "../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../useCases/getStatementOperation/IGetStatementOperationDTO";
+import { ITransferOperationDTO } from "../useCases/transferOperation/ITransferOperationDTO";
 import { IStatementsRepository } from "./IStatementsRepository";
 
 export class StatementsRepository implements IStatementsRepository {
@@ -44,13 +45,23 @@ export class StatementsRepository implements IStatementsRepository {
       where: { user_id }
     });
 
-    const balance = statement.reduce((acc, operation) => {
+    let balance = statement.reduce((acc, operation) => {
       if (operation.type === 'deposit') {
-        return acc + operation.amount;
+        return Number(acc) + Number(operation.amount);
       } else {
-        return acc - operation.amount;
+        return Number(acc) - Number(operation.amount);
       }
     }, 0)
+
+    const transfersReceived = await this.repository.find({
+      where: { receiver_id: user_id }
+    });
+
+    const totalValueOfTransfersReceived = transfersReceived.reduce((acc, operation) => {
+      return acc + operation.amount;
+    }, 0)
+
+    balance = Number(balance) + Number(totalValueOfTransfersReceived);
 
     if (with_statement) {
       return {
@@ -60,5 +71,17 @@ export class StatementsRepository implements IStatementsRepository {
     }
 
     return { balance }
+  }
+
+  async transfer({ sender_user_id, receiver_user_id, amount, description }: ITransferOperationDTO) {
+    const statement = this.repository.create({
+      user_id: sender_user_id,
+      receiver_id: receiver_user_id,
+      amount,
+      description,
+      type: OperationType.TRANSFER
+    });
+
+    return this.repository.save(statement);
   }
 }
